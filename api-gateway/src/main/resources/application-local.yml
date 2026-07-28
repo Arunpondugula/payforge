@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: account-route
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/v1/accounts/**
+            - id: ledger-route
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/v1/ledger/**,/api/v1/payment-intents/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE   # verbose route-matching logs, invaluable for local debugging
