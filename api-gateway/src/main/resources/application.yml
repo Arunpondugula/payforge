@@ -7,25 +7,23 @@ spring:
       server:
         webflux:
           httpclient:
-            connect-timeout: 2000     # ms -how long to wait for TCP  connect
-            response-timeout: 5s      # how long to wait for a response before giving up
+            connect-timeout: 2000
+            response-timeout: 5s
           default-filters:
-            #- AddResponseHeader=X-Gateway, payforge-api-gateway
             - name: AddResponseHeader
               args:
-                  name: X-Gateway
-                  value: payforge-api-gateway
+                name: X-Gateway
+                value: payforge-api-gateway
           routes:
             - id: account-route
-              uri: http://account-service:8080
+              uri: http://account-service:8081
               predicates:
-               - path =/api/v1/accounts/**
+                - Path=/api/v1/accounts/**
 
             - id: ledger-route
-              uri: http://ledger-service:8080
+              uri: http://ledger-service:8082
               predicates:
-                - path = /api/v1/ledger/**
-                - path = /api/v1/payment-intents/**
+                - Path=/api/v1/ledger/**,/api/v1/payment-intents/**
 management:
   endpoints:
     web:
