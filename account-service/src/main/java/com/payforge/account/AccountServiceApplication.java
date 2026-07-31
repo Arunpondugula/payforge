@@ -1,4 +1,4 @@
-package com.payforge.accountservice;
+package com.payforge.account;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
