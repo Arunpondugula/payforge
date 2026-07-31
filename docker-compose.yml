@@ -1,0 +1,15 @@
+services:
+  account-db:
+    image: postgres:16
+    container_name: payforge-account-db
+    environment:
+      POSTGRES_DB: accountdb
+      POSTGRES_USER: payforgeaccount
+      POSTGRES_PASSWORD: accountservice
+    ports:
+      - "5432:5432"
+    volumes:
+      - account-db-data:/var/lib/postgresql/data
+
+volumes:
+  account-db-data:
