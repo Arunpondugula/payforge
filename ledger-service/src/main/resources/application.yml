@@ -1,0 +1,17 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ledger-service
+  datasource:
+    url: jdbc:postgresql://ledger-db:5432/ledgerdb
+    username: payforgeledger
+    password: ledgerservice
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+account-service:
+  url: http://account-service:8081

@@ -11,5 +11,18 @@ services:
     volumes:
       - account-db-data:/var/lib/postgresql/data
 
+  ledger-db:
+    image: postgres:16
+    container_name: payforge-ledger-db
+    environment:
+      POSTGRES_DB: ledgerdb
+      POSTGRES_USER: payforgeledger
+      POSTGRES_PASSWORD: ledgerservice
+    ports:
+      - "5433:5432"
+    volumes:
+      - ledger-db-data:/var/lib/postgresql/data
+
 volumes:
   account-db-data:
+  ledger-db-data:
