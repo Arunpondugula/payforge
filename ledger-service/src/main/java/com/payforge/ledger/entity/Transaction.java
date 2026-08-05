@@ -1,7 +1,9 @@
 package com.payforge.ledger.entity;
 
+import com.payforge.ledger.exception.UnbalancedTransactionException;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,24 @@ public class Transaction {
     }
     public void markCompleted() { this.status = TransactionStatus.COMPLETED; }
     public void markFailed() { this.status = TransactionStatus.FAILED; }
+
+    public void assertBalanced() {
+        if (entries.size() < 2) {
+            throw new UnbalancedTransactionException(
+                    "Transaction " + id + " has " + entries.size() + " entries; at least two are required");
+        }
+
+        BigDecimal netSum = entries.stream()
+                .map(entry -> entry.getEntryType() == EntryType.CREDIT
+                        ? entry.getAmount()
+                        : entry.getAmount().negate())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (netSum.compareTo(BigDecimal.ZERO) != 0) {
+            throw new UnbalancedTransactionException(
+                    "Transaction " + id + " entries net to " + netSum + " but must net to zero");
+        }
+    }
 
     public UUID getId() { return id; }
     public TransactionStatus getStatus() { return status; }

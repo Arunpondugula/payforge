@@ -67,6 +67,9 @@ that a transaction's lifecycle only ever moves through deliberate, named transit
 never an arbitrary field assignment.
 
 ### `LedgerEntry`
+## Design Decisions
+
+**Double-entry invariant (enforced in code, not just convention).** Every `Transaction` must have at least two `LedgerEntry` rows, and the sum of their signed amounts must net to zero before a transaction is persisted. Sign convention: `entryType = CREDIT` contributes `+amount`, `entryType = DEBIT` contributes `-amount` — `amount` itself is always stored positive; `entryType` alone determines direction. This mirrors real double-entry bookkeeping (and how ledgers like Stripe's internal one store postings) rather than baking the sign into the stored value. Enforced by `Transaction.assertBalanced()`, called from `TransactionService.createTransaction()` before any database write — an unbalanced transaction throws `UnbalancedTransactionException` and nothing is persisted.
 
 The child record — one row per individual debit or credit within a transaction. A
 `Transaction` always has **two or more** `LedgerEntry` rows.
@@ -103,7 +106,27 @@ account rather than another customer's `accountId`. Not yet modeled as a real
 `accountId` value in code — flagged here as a known future requirement, not implemented
 in this scaffold.
 
----
+## Entity Relationship — Transaction & LedgerEntry
+
+```mermaid
+erDiagram
+    TRANSACTION ||--o{ LEDGER_ENTRY : contains
+    TRANSACTION {
+        UUID id PK
+        String status
+        String idempotencyKey UK
+        Instant createdAt
+    }
+    LEDGER_ENTRY {
+        UUID id PK
+        UUID transactionId FK
+        UUID accountId
+        String entryType
+        BigDecimal amount
+        Instant createdAt
+    }
+```
+`LedgerEntry.transactionId` is the real foreign key — `Transaction.entries` in code is Hibernate's in-memory view of "every `LedgerEntry` row pointing at this transaction," not a stored column.
 
 ## Inter-service communication
 
@@ -193,7 +216,6 @@ here) for Feign's Jackson-based record deserialization to match JSON keys to
 
 | Concern | Where it actually belongs |
 |---|---|
-| Double-entry zero-sum invariant enforcement | Immediately following this scaffold — the domain-model session |
 | Idempotency-key checking logic | Alongside the real `POST /payment-intents` endpoint |
 | Real payment-intent creation endpoint | Same session as idempotency-key logic |
 | Transaction isolation level, overdraft protection | The session following idempotency work |
